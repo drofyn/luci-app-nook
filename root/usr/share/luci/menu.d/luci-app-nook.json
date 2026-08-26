@@ -1,0 +1,13 @@
+{
+	"admin/services/nook": {
+		"title": "Nook",
+		"order": 60,
+		"action": {
+			"type": "view",
+			"path": "nook/general"
+		},
+		"depends": {
+			"acl": [ "luci-app-nook" ]
+		}
+	}
+}

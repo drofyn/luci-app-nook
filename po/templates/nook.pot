@@ -1,0 +1,57 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Nook"
+msgstr ""
+
+msgid "LAN collaboration service running on this device."
+msgstr ""
+
+msgid "Configuration"
+msgstr ""
+
+msgid "Start at Boot"
+msgstr ""
+
+msgid "Enable at Boot"
+msgstr ""
+
+msgid "Disable at Boot"
+msgstr ""
+
+msgid "Processing..."
+msgstr ""
+
+msgid "Enabled start at boot."
+msgstr ""
+
+msgid "Disabled start at boot."
+msgstr ""
+
+msgid "Failed: "
+msgstr ""
+
+msgid "Error: "
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Start the Nook service."
+msgstr ""
+
+msgid "Listen Address"
+msgstr ""
+
+msgid "Listening address in host:port format."
+msgstr ""
+
+msgid "Invalid listen address. Expected format: host:port"
+msgstr ""

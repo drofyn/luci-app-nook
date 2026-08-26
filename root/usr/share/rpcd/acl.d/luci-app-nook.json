@@ -1,0 +1,20 @@
+{
+	"luci-app-nook": {
+		"description": "Grant UCI and RPC access to LuCI app nook",
+		"read": {
+			"uci": [ "nook" ],
+			"ubus": {
+				"luci.nook": [ "get_status" ]
+			}
+		},
+		"write": {
+			"uci": [ "nook" ],
+			"ubus": {
+				"luci.nook": [ "service_action" ]
+			},
+			"file": {
+				"/etc/init.d/nook": [ "exec" ]
+			}
+		}
+	}
+}

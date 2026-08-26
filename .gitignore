@@ -1,0 +1,25 @@
+# Build artifacts
+*.ipk
+*.apk
+dist/
+build/
+
+# OpenWrt SDK / buildroot
+openwrt-sdk/
+sdk/
+openwrt/
+
+# OpenCode / agent runtime
+.omo/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
