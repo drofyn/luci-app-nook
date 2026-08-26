@@ -1,13 +1,11 @@
 #!/usr/bin/env ucode
 'use strict';
 
-import { glob } from 'fs';
-
 const methods = {
 	get_status: {
 		call: function() {
 			return {
-				enabled: (glob('/etc/rc.d/S??nook').length > 0),
+				enabled: (system([ 'ls', '/etc/rc.d/S95nook' ]) === 0),
 				running: (system([ '/etc/init.d/nook', 'running' ]) === 0)
 			};
 		}

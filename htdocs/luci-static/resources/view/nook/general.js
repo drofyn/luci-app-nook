@@ -16,6 +16,26 @@ const callServiceAction = rpc.declare({
 	params: ['action']
 });
 
+/* addTimeLimitedNotification() is LuCI 24.10+ only; fall back for 23.05 and older */
+function notify(level, message, timeout) {
+	if (typeof ui.addTimeLimitedNotification === 'function')
+		return ui.addTimeLimitedNotification(null, message, timeout, level);
+
+	const node = ui.addNotification(null, message, level);
+	setTimeout(function() {
+		if (node && node.parentNode) {
+			node.classList.add('fade-out');
+			node.classList.remove('fade-in');
+			setTimeout(function() {
+				if (node.parentNode)
+					node.parentNode.removeChild(node);
+			}, 400);
+		}
+	}, timeout);
+
+	return node;
+}
+
 return view.extend({
 	load: function() {
 		return L.resolveDefault(callGetStatus(), { enabled: false, running: false });
@@ -61,15 +81,15 @@ return view.extend({
 						L.resolveDefault(callServiceAction(action), {}).then(function(res) {
 							if (res && res.success) {
 								bootEnabled = !bootEnabled;
-								ui.addTimeLimitedNotification(null, E('p',
+								notify('notice', E('p',
 									bootEnabled ? _('Enabled start at boot.') : _('Disabled start at boot.')
-								), 5000, 'notice');
+								), 2000);
 							} else {
 								const errMsg = res && (res.error || res.message || (res.exit_code !== undefined ? 'Exit code: ' + res.exit_code : JSON.stringify(res)));
-								ui.addTimeLimitedNotification(null, E('p', _('Failed: ') + errMsg), 5000, 'error');
+								notify('error', E('p', _('Failed: ') + errMsg), 2000);
 							}
 						}).catch(function(err) {
-							ui.addTimeLimitedNotification(null, E('p', _('Error: ') + err.message), 5000, 'error');
+							notify('error', E('p', _('Error: ') + err.message), 2000);
 						}).finally(function() {
 							btn.disabled = false;
 							btn.textContent = bootEnabled ? _('Disable at Boot') : _('Enable at Boot');
