@@ -1,0 +1,46 @@
+name: luci-app-nook
+arch: all
+platform: linux
+version: ${NOOK_VERSION}
+release: ${NOOK_RELEASE}
+version_schema: semver
+maintainer: Nook Maintainers
+license: MIT
+description: LuCI interface for Nook LAN collaboration service
+depends:
+  - nook
+  - luci-base
+  - rpcd-mod-ucode
+scripts:
+  postinstall: ./packaging/scripts/postinstall.sh
+contents:
+  - src: ./root/usr/share/luci/menu.d/luci-app-nook.json
+    dst: /usr/share/luci/menu.d/luci-app-nook.json
+    file_info:
+      mode: 0644
+      owner: root
+      group: root
+  - src: ./root/usr/share/rpcd/acl.d/luci-app-nook.json
+    dst: /usr/share/rpcd/acl.d/luci-app-nook.json
+    file_info:
+      mode: 0644
+      owner: root
+      group: root
+  - src: ./root/usr/share/rpcd/ucode/nook.uc
+    dst: /usr/share/rpcd/ucode/nook.uc
+    file_info:
+      mode: 0644
+      owner: root
+      group: root
+  - src: ./htdocs/luci-static/resources/view/nook/general.js
+    dst: /www/luci-static/resources/view/nook/general.js
+    file_info:
+      mode: 0644
+      owner: root
+      group: root
+
+ipk:
+  arch: all
+
+apk:
+  arch: all

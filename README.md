@@ -44,12 +44,39 @@ rm -rf /tmp/luci-modulecache /tmp/luci-indexcache.*
 
 ## 编译方法
 
-### 方法一：放入 OpenWrt / ImmortalWrt feed
+### 方法一：nFPM（推荐，快速打包）
 
-1. 把本仓库复制到 OpenWrt 源码树的 feed 目录，例如：
+本仓库使用 [nFPM](https://nfpm.goreleaser.com/) 生成 OpenWrt `.ipk` 和 `.apk` 包。
+
+1. 安装 nFPM：
 
 ```bash
-cp -r /path/to/luci-app-nook openwrt/package/feeds/luci/luci-app-nook
+go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+```
+
+2. 构建：
+
+```bash
+export NOOK_VERSION=0.0.1
+export NOOK_RELEASE=1
+sh scripts/build-packages.sh
+```
+
+产物位于 `dist/` 目录，例如：
+
+```text
+luci-app-nook_0.0.1-1_all.ipk
+luci-app-nook_0.0.1-r1_all.apk
+```
+
+### 方法二：放入 OpenWrt / ImmortalWrt feed（未验证）
+
+`Makefile` 按标准 LuCI 应用结构编写，但尚未通过 OpenWrt 源码树 / SDK 实际编译验证。如果你需要从 OpenWrt 源码树编译标准的 `.ipk`：
+
+1. 把本仓库复制到 OpenWrt 源码树的 feed 目录：
+
+```bash
+cp -r /path/to/luci-app-nook openwrt/feeds/luci/applications/luci-app-nook
 ```
 
 2. 更新 feeds 并编译：
@@ -57,30 +84,10 @@ cp -r /path/to/luci-app-nook openwrt/package/feeds/luci/luci-app-nook
 ```bash
 cd openwrt
 ./scripts/feeds update luci
-./scripts/feeds install luci
+./scripts/feeds install luci-app-nook
 make menuconfig  # 选择 LuCI -> Applications -> luci-app-nook
 make package/luci-app-nook/compile V=s
 ```
-
-### 方法二：使用 OpenWrt SDK
-
-1. 下载对应架构的 [OpenWrt SDK](https://downloads.openwrt.org/releases/)。
-
-2. 把本仓库放入 SDK 的 `package/` 目录：
-
-```bash
-cp -r /path/to/luci-app-nook openwrt-sdk-*/package/luci-app-nook
-```
-
-3. 编译：
-
-```bash
-cd openwrt-sdk-*
-make defconfig
-make package/luci-app-nook/compile V=s
-```
-
-编译产物位于 `bin/packages/*/base/luci-app-nook_*.ipk`。
 
 ### 通过 Git tag 发布
 
@@ -88,7 +95,68 @@ make package/luci-app-nook/compile V=s
 
 推送形如 `v1.2.3` 的 tag 时，CI 会自动：
 
-1. 以 tag 名称作为 `PKG_VERSION` 编译包（`v1.2.3` 会去掉前缀 `v`，最终包名为 `luci-app-nook_1.2.3-..._all.ipk`）；
+1. 以 tag 名称作为版本号构建 nFPM 包（`v1.2.3` 会去掉前缀 `v`）；
+2. 将 `.ipk` 和 `.apk` 产物上传到该 tag 对应的 GitHub Release（不存在则自动创建）。
+
+```bash
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+### 测试 CI
+
+推送测试 tag：
+
+```bash
+git tag v0.0.0-test.1
+git push origin v0.0.0-test.1
+```
+
+构建完成后可以删除该 tag 和对应的 Release：
+
+```bash
+git push --delete origin v0.0.0-test.1
+git tag -d v0.0.0-test.1
+```
+
+2. 构建：
+
+```bash
+export NOOK_VERSION=0.0.1
+export NOOK_RELEASE=1
+nfpm pkg --packager deb --target dist/
+nfpm pkg --packager apk --target dist/
+```
+
+产物位于 `dist/` 目录。
+
+### 方法二：放入 OpenWrt / ImmortalWrt feed
+
+如果你需要从 OpenWrt 源码树编译标准的 `.ipk`：
+
+1. 把本仓库复制到 OpenWrt 源码树的 feed 目录：
+
+```bash
+cp -r /path/to/luci-app-nook openwrt/feeds/luci/applications/luci-app-nook
+```
+
+2. 更新 feeds 并编译：
+
+```bash
+cd openwrt
+./scripts/feeds update luci
+./scripts/feeds install luci-app-nook
+make menuconfig  # 选择 LuCI -> Applications -> luci-app-nook
+make package/luci-app-nook/compile V=s
+```
+
+### 通过 Git tag 发布
+
+只有推送 `v*` 开头的 tag 时才会触发 CI 构建。
+
+推送形如 `v1.2.3` 的 tag 时，CI 会自动：
+
+1. 以 tag 名称作为版本号构建 nFPM 包（`v1.2.3` 会去掉前缀 `v`，产物如 `luci-app-nook_1.2.3-1_amd64.deb`）；
 2. 将编译产物上传到该 tag 对应的 GitHub Release（不存在则自动创建）。
 
 ```bash
@@ -116,20 +184,6 @@ git push --delete origin v0.0.0-test.1
 git tag -d v0.0.0-test.1
 ```
 
-**方式三：本地用 act 测试**
-
-安装 [nektos/act](https://github.com/nektos/act) 后：
-
-```bash
-act push -e event.json
-```
-
-其中 `event.json` 模拟 tag push 事件。更简单的方式是：
-
-```bash
-act workflow_dispatch -e <(echo '{"inputs": {"version": "9.9.9-test"}}')
-```
-
 ## 本地语法检查
 
 ```bash
@@ -144,13 +198,18 @@ ucode -c root/usr/share/rpcd/ucode/nook.uc
 
 ```
 luci-app-nook/
-├── Makefile
+├── Makefile                 # 占位：标准 LuCI Makefile，当前未用于打包
+├── nfpm.yaml
+├── scripts/build-packages.sh
+├── packaging/scripts/postinstall.sh
 ├── htdocs/luci-static/resources/view/nook/general.js
 ├── po/templates/nook.pot
 ├── root/usr/share/luci/menu.d/luci-app-nook.json
 ├── root/usr/share/rpcd/acl.d/luci-app-nook.json
 └── root/usr/share/rpcd/ucode/nook.uc
 ```
+
+> **注意**：`Makefile` 目前仅为标准 LuCI 应用结构占位，尚未通过 OpenWrt SDK/feed 实际验证可用。当前发布打包使用 `nfpm.yaml` + `scripts/build-packages.sh`。
 
 ## 截图
 
